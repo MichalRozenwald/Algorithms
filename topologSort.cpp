@@ -85,7 +85,6 @@ void TestTopSort() {
   CheckTopSort({ { 1 }, {} });
   CheckTopSort({ {3}, {3}, {3}, {} });
   CheckTopSort({ {1}, {2}, {3}, {} });
-
 }
 
 int main() {
