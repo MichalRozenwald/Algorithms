@@ -30,6 +30,7 @@ std::vector<int> TopSort (const Graph& g) {
       }
     }
   }
+  return sorted;
 }
 
 void CheckTopSort(const Graph& g, const std::vector<int>& sorted) {
@@ -88,4 +89,6 @@ void TestTopSort() {
 }
 
 int main() {
+  TestTopSort();
+
 }
