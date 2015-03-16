@@ -4,6 +4,7 @@
 int MOD = 268435459;
 
 int CountWays(int i, int j, const std::vector<std::vector<int>>& net, std::vector<std::vector<int>>& ways) {
+  if(ways.empty()) {ways.resize(net.size(), std::vector<int>(net[0].size(), -1));}
   if(i >= net.size() || j >= net[0].size()) {
     return 0;
   }
@@ -23,23 +24,23 @@ int CountWays(int i, int j, const std::vector<std::vector<int>>& net, std::vecto
   return ways[i][j];
 }
 
-void input (std::vector< std::vector<int> >& net) {
+std::vector< std::vector<int> > input () {
+   int n, m;
+  std::cin >> n >> m;
+  std::vector< std::vector<int> > net(n, std::vector<int>(m));
   for(int i = 0; i < net.size(); i++){
     for(int j = 0; j < net[0].size(); j++) {
       int square;
       std::cin >> square;
-      //net[i].push_back(square);
       net[i][j] = square;
     }
   }
+  return net;
 }
 
 int main() {
-  int n, m;
-  std::cin >> n >> m;
-  std::vector< std::vector<int> > net(n, std::vector<int>(m));
-  input(net);
-  std::vector< std::vector<int> > ways(n, std::vector<int>(m, -1));
+  std::vector< std::vector<int> > net = input();
+  std::vector< std::vector<int> > ways;
   std::cout << CountWays(0, 0, net, ways);
 
   return 0;
