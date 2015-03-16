@@ -73,21 +73,21 @@ Graph input() {
   return my_graph;
 }
 
-void output(std::vector<int>& sorted_indexes) {
-  std::vector<int> coordin(sorted_indexes.size());
-  for (int i = 0; i < sorted_indexes.size(); ++i) {
-    coordin[sorted_indexes[i]] = i;
+void output(std::vector<int>& sorted_indices) {
+  std::vector<int> coordin(sorted_indices.size());
+  for (int i = 0; i < sorted_indices.size(); ++i) {
+    coordin[sorted_indices[i]] = i;
   }
-  for (int i = 0; i < sorted_indexes.size(); i += 2) {
+  for (int i = 0; i < sorted_indices.size(); i += 2) {
     std::cout << coordin[i] << " " << coordin[i + 1] << std::endl;
   }
 }
 
 int main() {
   Graph my_graph = input();
-  std::vector<int> sorted_indexes = TopSort(my_graph);
-  if (sorted_indexes.size() < my_graph.size() / 2) { std::cout << "Impossible"; }
-  else { output(sorted_indexes); }
+  std::vector<int> sorted_indices = TopSort(my_graph);
+  if (sorted_indices.size() < my_graph.size() / 2) { std::cout << "Impossible"; }
+  else { output(sorted_indices); }
 
   return 0;
 }
