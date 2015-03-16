@@ -3,21 +3,20 @@
 
 typedef std::vector<std::vector<int>> GraphMatrix;
 
+int INF = -1;
+
 int bfsFindShort(const GraphMatrix& g_matrix,
                   int start_x, int start_y, int finish_x, int finish_y) {
-  int INF = -1;
-  GraphMatrix path_length;
-  for (int i = 0; i < g_matrix.size(); i++) {
-    std::vector<int> line(g_matrix[0].size(), INF);
-    path_length.push_back(line);
-  }
-  int step = 0;
+  int width = g_matrix[0].size(), height = g_matrix.size();
+  GraphMatrix path_length(height, std::vector<int>(width, INF));
 
   std::vector<std::pair<int,int>> future_set;
   future_set.push_back({start_x, start_y});
   std::vector<std::pair<int,int>> current_set;
 
-  while (!future_set.empty()) {
+
+  int step = 0;
+  for (int step = 0; !future_set.empty(); step++) {
     current_set = future_set;
     future_set.clear();
     while(!current_set.empty()) {
@@ -36,33 +35,30 @@ int bfsFindShort(const GraphMatrix& g_matrix,
       if(top_y - 1 > -1 && g_matrix[top_x][top_y - 1] == 0) {
           future_set.push_back({top_x, top_y - 1});
       }
-      if(top_x + 1 < g_matrix.size() && g_matrix[top_x + 1][top_y] == 0) {
+      if(top_x + 1 < height && g_matrix[top_x + 1][top_y] == 0) {
           future_set.push_back({top_x + 1, top_y});
       }
-      if(top_y + 1  < g_matrix[0].size() && g_matrix[top_x][top_y + 1] == 0) {
+      if(top_y + 1  < width && g_matrix[top_x][top_y + 1] == 0) {
           future_set.push_back({top_x, top_y + 1});
       }
     }
-    step++;
-    }
+  }
   return path_length[finish_x][finish_y];
 }
 
-GraphMatrix input_g_matrix(int m, int n){
-  GraphMatrix g_matrix(m, std::vector<int>(n));
-  for (int i = 0; i < m; i++) {
-    for (int j = 0; j < n; j++) {
-      int value;
-      std::cin >> value;
-      g_matrix[i][j] = value;
+GraphMatrix input_g_matrix(int width, int height){
+  GraphMatrix g_matrix(width, std::vector<int>(height));
+  for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
+      std::cin >> g_matrix[i][j];
     }
   }
   return g_matrix;
 }
 
 int main() {
-  int m, n;
-  std::cin >> m >> n;
+  int width, height;
+  std::cin >> width >> height;
 
   int start_x, start_y;
   std::cin >> start_x >> start_y;
@@ -73,7 +69,7 @@ int main() {
   finish_x--;
   finish_y--;
 
-  GraphMatrix g_matrix = input_g_matrix(m, n);
+  GraphMatrix g_matrix = input_g_matrix(width, height);
 
   int result = bfsFindShort(g_matrix, start_x, start_y, finish_x, finish_y);
   if(result > -1) { std::cout << result; }
