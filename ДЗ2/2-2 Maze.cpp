@@ -14,8 +14,6 @@ int bfsFindShort(const GraphMatrix& g_matrix,
   future_set.push_back({start_x, start_y});
   std::vector<std::pair<int,int>> current_set;
 
-
-  int step = 0;
   for (int step = 0; !future_set.empty(); step++) {
     current_set = future_set;
     future_set.clear();
