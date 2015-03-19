@@ -3,7 +3,12 @@
 
 int MOD = 268435459;
 
-int CountWays(int i, int j, const std::vector<std::vector<int>>& net, std::vector<std::vector<int>>& ways) {
+int CountWays(int i, int j, const std::vector<std::vector<int>>& net, std::vector<std::vector<int>> ways, int step) {
+  if(step == 0) {
+    std::vector<std::vector<int>> first_ways;
+    ways = first_ways;
+    step++;
+  }
   if(ways.empty()) {ways.resize(net.size(), std::vector<int>(net[0].size(), -1));}
   if(i >= net.size() || j >= net[0].size()) {
     return 0;
@@ -20,7 +25,7 @@ int CountWays(int i, int j, const std::vector<std::vector<int>>& net, std::vecto
     return 1;
   }
 
-  ways[i][j] = (CountWays(i, j+1, net, ways) + CountWays(i+1, j, net, ways) ) % MOD;
+  ways[i][j] = (CountWays(i, j+1, net, ways, 1) + CountWays(i+1, j, net, ways, 1) ) % MOD;
   return ways[i][j];
 }
 
@@ -40,8 +45,7 @@ std::vector< std::vector<int> > input () {
 
 int main() {
   std::vector< std::vector<int> > net = input();
-  std::vector< std::vector<int> > ways;
-  std::cout << CountWays(0, 0, net, ways);
+  std::cout << CountWays(0, 0, net, net, 0);
 
   return 0;
 }
