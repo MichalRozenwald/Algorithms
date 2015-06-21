@@ -1,0 +1,99 @@
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <unordered_set>
+#include <map>
+#include <string>
+#include <deque>
+
+using namespace std;
+
+class Machine {
+public:
+    vector< map<char, size_t> > states;
+    vector< vector<size_t> > epselent_graph;
+    unordered_set<size_t> allowing;
+};
+
+void RecurDFS(size_t cur_state, vector< vector<size_t> > & epselent_graph, unordered_set<size_t>& reached_states) {
+    reached_states.insert(cur_state);
+    for (auto connected : epselent_graph[cur_state]) {
+        if (reached_states.find(connected) == reached_states.end()) {
+            RecurDFS(connected, epselent_graph, reached_states);
+        }
+    }
+}
+
+unordered_set<size_t> EpsExpend(unordered_set<size_t>& all_cur_states, vector< vector<size_t> > & epselent_graph) {
+    unordered_set<size_t> reached_states;
+    for (size_t state : all_cur_states) {
+        if (reached_states.find(state) == reached_states.end()) {
+            RecurDFS(state, epselent_graph, reached_states);
+        }
+    }
+    return reached_states;
+}
+
+bool IsAcceptedStr(Machine& machine, string& str) {
+    unordered_set<size_t> cur_states;
+    cur_states.insert(0);
+    cur_states = EpsExpend(cur_states, machine.epselent_graph);
+    for(char symbol : str) {
+        unordered_set<size_t> new_states;
+        for (size_t state : cur_states) {
+            auto iter_cur_symbol = machine.states[state].find(symbol);
+            if (iter_cur_symbol != machine.states[state].end()) {
+                new_states.insert(iter_cur_symbol->second);
+            }
+        }
+        cur_states = EpsExpend(new_states, machine.epselent_graph);
+    }
+    for( size_t state : cur_states) {
+        if (machine.allowing.find(state) != machine.allowing.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+int main() {
+    int num_of_states;
+    cin >> num_of_states;
+    Machine machine;
+    machine.states.resize(num_of_states);
+    machine.epselent_graph.resize(num_of_states);
+    for(size_t state = 0; state < num_of_states; state++) {
+        int allowed;
+        cin >> allowed;
+        if (allowed) machine.allowing.insert(state);
+        int num_eps;
+        cin >> num_eps;
+        for (size_t co_state = 0; co_state < num_eps; co_state++) {
+            size_t to;
+            cin >> to;
+            machine.epselent_graph[state].push_back(to);
+        }
+        int num_connected;
+        cin >> num_connected;
+        for (size_t co_state = 0; co_state < num_connected; co_state++) {
+            char symbol;
+            size_t to;
+            cin >> symbol >> to;
+            machine.states[state].insert({symbol, to});
+        }
+    }
+
+    string empty_s = "";
+    cout << IsAcceptedStr(machine, empty_s) << endl;
+
+    int num_of_strings;
+    cin >> num_of_strings;
+    for (int str = 0; str < num_of_strings; ++str) {
+        std::string cur_string;
+        cin >> cur_string;
+        cout << IsAcceptedStr(machine, cur_string) << endl;
+    }
+
+    return 0;
+}
