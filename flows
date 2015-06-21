@@ -1,0 +1,196 @@
+#include <vector>
+#include <algorithm>
+#include <utility>
+#include <cassert>
+#include <deque>
+#include <iostream>
+
+using namespace std;
+class Network {
+
+public:
+  size_t NumNode() const {return nodes_.size(); }
+  size_t NumEdges(size_t node) const {return nodes_[node].size();};
+
+  size_t EdgeDst(size_t node, size_t edge) const {
+    return nodes_[node][edge].dst;
+  }
+  int FlowEdgeCapacity(size_t node, size_t edge) const {
+    Edge e = nodes_[node][edge];
+    return e.absolute_capacity - e.flow;
+  }
+
+  int EdgeCapacity(size_t node, size_t edge) const {
+    return nodes_[node][edge].capacity;
+  }
+  int EdgeFlow(size_t node, size_t edge) const {
+    return nodes_[node][edge].flow;
+  }
+
+  void FlowPushFlow(size_t node, size_t edge, int flow) {
+    Edge& e = nodes_[node][edge];
+    e.flow -= flow;
+    assert(e.flow <= e.absolute_capacity);
+    nodes_[e.dst][e.twin].flow += flow;
+  }
+
+  void PushFlow(size_t node, size_t edge, int flow) {
+    Edge& e = nodes_[node][edge];
+    e.capacity -= flow;
+    if(nodes_[e.dst][e.twin].capacity < e.capacity) {
+      e.capacity -= nodes_[e.dst][e.twin].capacity;
+      nodes_[e.dst][e.twin].capacity = 0;
+    } else {
+      nodes_[e.dst][e.twin].capacity -= e.capacity;
+      e.capacity = 0;
+    }
+  }
+
+  void AddEdge(size_t flow, size_t from, size_t to, int capacity) {
+    if(nodes_.size() <= std::max(from, to)) {
+      nodes_.resize(std::max(from, to) + 1);
+    }
+    nodes_[from].resize(nodes_[from].size()+1);//emplace_back();
+    nodes_[to].resize(nodes_[to].size()+1);//.emplace_back();
+
+    nodes_[from].back().dst = to;
+    nodes_[from].back().twin = nodes_[to].size() - 1;
+    nodes_[from].back().flow = 0;
+    nodes_[from].back().absolute_capacity = capacity;
+    nodes_[from].back().capacity = capacity;
+
+    nodes_[to].back().dst = from;
+    nodes_[to].back().twin = nodes_[to].size() - 1;
+    nodes_[to].back().flow = 0;
+    nodes_[to].back().absolute_capacity = capacity;
+    nodes_[to].back().capacity = 0;
+  }
+
+  bool CheckTaskCapacity(int sourse) {
+    for(int edge = 0; edge < nodes_[sourse].size(); ++edge) {
+      if(nodes_[sourse][edge].capacity != 0) return false;
+    }
+    return true;
+  }
+
+  void Output() {
+    for(int node = 0; node < nodes_.size(); node++) {
+      for(int e = 0; e < nodes_[node].size(); ++e) {
+        Edge cur_e = nodes_[node][e];
+      }
+    }
+  }
+
+  struct Edge {
+    size_t dst, twin;
+    int flow, absolute_capacity;
+    int capacity;
+  };
+  std::vector< std::vector<Edge> > nodes_;
+};
+
+typedef std::vector< std::pair<size_t, size_t> > Path;
+
+bool FindPath(const Network& network, Path* path, size_t start, size_t end) {
+  std::vector<size_t> back_node(network.NumNode(), -1);
+  std::vector<size_t> back_edge(network.NumNode());
+  std::deque<size_t> queue;
+  queue.push_back(start);
+  back_node[start] = start;
+
+  while(!queue.empty()){
+    size_t node = queue.front();
+    queue.pop_front();
+    for(size_t edge = 0; edge < network.NumEdges(node); ++edge) {
+      if(network.EdgeCapacity(node, edge) == 0 ) continue;
+
+      size_t to = network.EdgeDst(node, edge);
+      if(back_node[to] != -1) continue;
+
+      queue.push_back(to);
+      back_node[to] = node;
+      back_edge[to] = edge;
+    }
+  }
+
+  if(back_node[end] == -1) return false; //back_node[?]
+  for(size_t node = end; node != start; node = back_node[node]) {
+    std::pair<size_t, size_t> new_pair;
+    new_pair.first = back_node[node];
+    new_pair.second = back_edge[node];
+    (*path).push_back(new_pair);  //emplace_back(back_node[node], back_edge[node]);
+  }
+  int min_capacity = network.EdgeCapacity((*path)[0].first, (*path)[0].second);
+  for(int elem = 0; elem < (*path).size(); elem++) {
+    std::pair<size_t, size_t> edge = (*path)[elem];
+    min_capacity = std::min(min_capacity, network.EdgeCapacity(edge.first, edge.second));
+  }
+
+  if(min_capacity > 0) return true;
+  return false;
+}
+
+int MaxFlow(Network network, size_t sourse, size_t sink, size_t ans) {
+  for(int kid = 1; kid < network.NumNode() - 1; ++kid) {
+    network.AddEdge(0, kid, network.NumNode() - 1, ans); //from kid to sink at the beginning
+  }
+  network.Output();
+
+  Path path;
+  while(FindPath(network, &path, sourse, sink)) {
+    int min_capacity = network.EdgeCapacity(path[0].first, path[0].second);
+    for(int elem = 0; elem < path.size(); elem++) {
+      std::pair<size_t, size_t> edge = path[elem];
+      min_capacity = std::min(min_capacity, network.EdgeCapacity(edge.first, edge.second));
+    }
+
+    for(int elem = 0; elem < path.size(); elem++) {
+      std::pair<size_t, size_t> edge = path[elem];
+      network.PushFlow(edge.first, edge.second, min_capacity);
+    }
+    Path clean_p;
+    path = clean_p;
+  }
+  network.Output();
+  return network.CheckTaskCapacity(sourse);
+}
+
+int main() {
+  int num_stud, num_contacts;
+  std::cin >> num_stud >> num_contacts;
+
+  Network network;
+  network.nodes_.resize(num_stud+2);
+
+  int all_problems = 0;
+  for(int kid = 1; kid < num_stud+1; ++kid) {
+    size_t problems;
+    std::cin >> problems;
+    network.AddEdge(0, 0, kid, problems); //from sourse at the beginning
+    all_problems += problems;
+  }
+
+  size_t inf = 1000000;
+  for(int contact = 0; contact < num_contacts; ++contact) {
+    size_t from, to;
+    std::cin >> from >> to;
+    network.AddEdge(0, from, to, inf);
+  }
+
+  network.Output();
+
+  int right_b = all_problems +1;
+  int left_b = all_problems / num_stud - 1;
+  while(left_b < right_b) {
+    int middle = (right_b + left_b) /2 ;
+    if(MaxFlow(network, 0, num_stud+1, middle)) {
+      right_b = middle;
+    } else {
+      left_b = middle + 1;
+    }
+  }
+
+  std::cout << left_b;
+
+  return 0;
+}
