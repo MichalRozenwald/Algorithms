@@ -1,0 +1,64 @@
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <set>
+#include <map>
+#include <string>
+
+using namespace std;
+
+class Machine {
+public:
+    vector< map<char, size_t> > states;
+    set<size_t> allowing;
+};
+
+bool IsAcceptedStr(Machine& machine, string str) {
+    size_t cur_state = 0;
+    for(char symbol : str) {
+        auto iter_cur_symbol = machine.states[cur_state].find(symbol);
+        if(iter_cur_symbol != machine.states[cur_state].end()) {
+            cur_state = iter_cur_symbol->second;
+        } else {
+            return 0;
+        }
+    }
+    if(machine.allowing.find(cur_state) != machine.allowing.end()){
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int main() {
+    int num_of_states;
+    cin >> num_of_states;
+    Machine machine;
+    machine.states.resize(num_of_states);
+    for(size_t state = 0; state < num_of_states; state++) {
+        int allowed;
+        cin >> allowed;
+        if(allowed) machine.allowing.insert(state);
+        int num_connected;
+        cin >> num_connected;
+        for(size_t co_state = 0; co_state < num_connected; co_state++) {
+            char symbol;
+            size_t to;
+            cin >> symbol >> to;
+            machine.states[state].insert({symbol, to});
+        }
+    }
+
+    string empty_s = "";
+    cout << IsAcceptedStr(machine, empty_s) << endl;
+
+    int num_of_strings;
+    cin >> num_of_strings;
+    for(int str = 0; str < num_of_strings; ++str) {
+        std::string cur_string;
+        cin >> cur_string;
+        cout << IsAcceptedStr(machine, cur_string) << endl;
+    }
+
+    return 0;
+}
