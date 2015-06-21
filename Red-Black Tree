@@ -1,0 +1,241 @@
+#include <vector>
+#include <iostream>
+
+using namespace std;
+
+class Node{
+public:
+    int value;
+    int color; // 0 - red; 1 - black
+    Node *left;
+    Node *right;
+    Node *parent;
+
+    /*copy constructor
+    Node(int value){
+        strcpy(this->value, value);
+        color = NULL;
+    }
+    constructor
+    Node(){
+        this->value = new int;
+        color = NULL;
+    }
+*/
+    Node(){
+        this->parent = NULL;
+        color = 1;
+        this->left = NULL;
+        this->right = NULL;
+    }
+    Node(int cur_value, char cur_color){
+        value = cur_value;
+        color = cur_color;
+    }
+    Node(int cur_value){
+        value = cur_value;
+        //color = 0;
+    }
+
+    ~Node(){}
+};
+
+/*
+class Tree2{
+  vector<Node2> nodes;
+  struct Node2 {
+    int value, color;
+    int left, right, parent;
+    vector<Node2>& nodes;
+  };
+};
+*/
+
+class RBTree {
+  private:
+    Node* Root;
+    Node* Nil;
+  
+  public:
+    RBTree(){
+        this->Nil = new Node();
+      //  this->Root->parent = nullptr;
+        this->Root = Nil;
+    }
+
+    ~RBTree(){
+      RecursiveDel(this->Root);
+      delete (this->Nil);
+    }
+    void RecursiveDel (Node* node) {
+      if(node == nullptr) return;
+      RecursiveDel(node->left);
+      RecursiveDel(node->right);
+      delete node;
+    }
+
+    bool Fined(int f_value) {
+      Node * next = Root;
+      while (next != nullptr) {
+        if(next->value == f_value) {
+          return true;
+        }
+        if(next->value > f_value ) {
+          next = next->left;
+        } else {
+          next = next->right;
+        }
+      }
+      if(next == nullptr) return false;
+    }
+
+    int TurnLeft( Node *cur_node ){
+        Node *help_node;
+        help_node = cur_node->right;
+        cur_node->right = help_node->left;
+        help_node->left->parent = cur_node;
+        help_node->parent = cur_node->parent;
+
+        if ( cur_node->parent == Nil || cur_node == nullptr)
+            Root = help_node;
+        else if ( cur_node == cur_node->parent->left )
+            cur_node->parent->left = help_node;
+        else
+            cur_node->parent->right = help_node;
+        help_node->left = cur_node;
+        cur_node->parent = help_node;
+        return 0;
+    }
+
+    int TurnRight( Node *cur_node )
+    {
+        Node *help_node;
+
+        help_node = cur_node->left;
+        cur_node->left = help_node->right;
+        help_node->right->parent = cur_node;
+        help_node->parent = cur_node->parent;
+
+        if ( cur_node->parent == nullptr )
+            Root = help_node;
+        else if ( cur_node == cur_node->parent->right )
+            cur_node->parent->right = help_node;
+        else
+            cur_node->parent->left = help_node;
+        help_node->right = cur_node;
+        cur_node->parent = help_node;
+        return 0;
+    }
+
+    void Insert( int value ){
+        Node *cur_node, *prev_node;
+        prev_node = Nil;
+        cur_node = Root;
+
+        while ( cur_node != Nil && cur_node != nullptr){
+            prev_node = cur_node;
+            if ( value < cur_node->value )
+                cur_node = cur_node->left;
+            else if ( value > cur_node->value )
+                cur_node = cur_node->right;
+            else
+                return;
+        }
+
+        Node *ad_node = new Node(value);
+        ad_node->parent = prev_node;
+        ad_node->color = 0;
+        ad_node->left = ad_node->right = Nil; //NULL
+
+        if( prev_node == Nil )
+            Root = ad_node;
+        else {
+            if( value < prev_node->value  ) //??
+                prev_node->left = ad_node;
+            else
+                prev_node->right = ad_node;
+        }
+
+        BalanceInsert(ad_node);
+
+        cur_node = prev_node = nullptr;
+        return;
+    }
+
+    int  BalanceInsert( Node *ad_node ){
+        Node *uncle;
+
+        while (ad_node->parent->color == 0) {
+            if ( ad_node->parent == ad_node->parent->parent->left ) {//left parent{
+                uncle = ad_node->parent->parent->right;
+
+                if ( uncle->color == 0 ){
+                    ad_node->parent->color = 1;
+                    uncle->color = 1;
+                    ad_node->parent->parent->color = 0;
+                    ad_node = ad_node->parent->parent;
+                } else {
+                    if ( ad_node == ad_node->parent->right ) {
+                        ad_node = ad_node->parent;
+                        TurnLeft( ad_node );
+                    }
+
+                    ad_node->parent->color = 1;
+                    ad_node->parent->parent->color = 0;
+                    TurnRight( ad_node->parent->parent );
+                }
+            } else {
+                uncle = ad_node->parent->parent->left;
+
+                if ( uncle->color == 0 ) {
+                    ad_node->parent->color = 1;
+                    uncle->color = 1;
+                    ad_node->parent->parent->color = 0;
+                    ad_node = ad_node->parent->parent;
+                } else {
+                    if ( ad_node == ad_node->parent->left ) {
+                        ad_node = ad_node->parent;
+                        TurnRight( ad_node );
+                    }
+                    ad_node->parent->color = 1;
+                    ad_node->parent->parent->color = 0;
+                    TurnLeft( ad_node->parent->parent );
+                }
+            }
+        }
+
+        Root->color = 1;
+
+        uncle = nullptr;
+        return 0;
+    }
+    void  SwitchInOrder( Node *n )
+    {
+        if ( n != Nil )
+        {
+            SwitchInOrder( n->left );
+            SwitchInOrder( n->right );
+        }
+    }
+};
+
+
+int main() {
+    int num_rec;
+    cin >> num_rec;
+    RBTree tree;
+    for(int recvest = 0; recvest < num_rec; recvest++) {
+        int type, value;
+        cin >> type >> value;
+        if(type == 0) {
+            tree.Insert(value);
+        } else {
+            if(tree.Fined(value)) {
+                cout << "YES";
+            } else {
+                cout << "NO";
+
+            }
+        }
+    }
+};
