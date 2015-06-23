@@ -10,10 +10,6 @@ using namespace std;
 
 class Machine {
 public:
-    vector< multimap<char, size_t> > states;
-    vector< vector<size_t> > epselent_graph;
-    unordered_set<size_t> allowing;
-
     void RecurDFS(size_t cur_state, vector<bool>& is_reached) {
         for (auto connected : this->epselent_graph[cur_state]) {
             if (!is_reached[connected]) {
@@ -87,6 +83,10 @@ public:
         }
     }
 
+private:
+    vector< multimap<char, size_t> > states;
+    vector< vector<size_t> > epselent_graph;
+    unordered_set<size_t> allowing;
 };
 
 
