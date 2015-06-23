@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <vector>
 #include <utility>
@@ -10,43 +11,51 @@ using namespace std;
 
 class Machine {
 public:
-    vector< map<char, size_t> > states;
+    vector< multimap<char, size_t> > states;
     vector< vector<size_t> > epselent_graph;
     unordered_set<size_t> allowing;
 };
 
-void RecurDFS(size_t cur_state, vector< vector<size_t> > & epselent_graph, unordered_set<size_t>& reached_states) {
-    reached_states.insert(cur_state);
+void RecurDFS(size_t cur_state, vector< vector<size_t> > & epselent_graph, vector<bool>& is_reached) {
     for (auto connected : epselent_graph[cur_state]) {
-        if (reached_states.find(connected) == reached_states.end()) {
-            RecurDFS(connected, epselent_graph, reached_states);
+        if (!is_reached[connected]) {
+            is_reached[connected] = 1;
+            RecurDFS(connected, epselent_graph, is_reached);
         }
     }
 }
 
-unordered_set<size_t> EpsExpend(unordered_set<size_t>& all_cur_states, vector< vector<size_t> > & epselent_graph) {
-    unordered_set<size_t> reached_states;
+
+void EpsExpend(unordered_set<size_t>& all_cur_states, vector< vector<size_t> > & epselent_graph) {
+    // unordered_set<size_t> reached_states;
+    vector<bool> is_reached(epselent_graph.size(), 0);
     for (size_t state : all_cur_states) {
-        if (reached_states.find(state) == reached_states.end()) {
-            RecurDFS(state, epselent_graph, reached_states);
+        RecurDFS(state, epselent_graph, is_reached);
+    }
+    for (size_t state = 0; state < is_reached.size(); state++) {
+        if (is_reached[state]) {
+            all_cur_states.insert(state);
         }
     }
-    return reached_states;
 }
 
 bool IsAcceptedStr(Machine& machine, string& str) {
     unordered_set<size_t> cur_states;
     cur_states.insert(0);
-    cur_states = EpsExpend(cur_states, machine.epselent_graph);
+    EpsExpend(cur_states, machine.epselent_graph);
     for(char symbol : str) {
         unordered_set<size_t> new_states;
         for (size_t state : cur_states) {
             auto iter_cur_symbol = machine.states[state].find(symbol);
-            if (iter_cur_symbol != machine.states[state].end()) {
-                new_states.insert(iter_cur_symbol->second);
+            while (iter_cur_symbol != machine.states[state].end() && iter_cur_symbol->first == symbol) {
+                if (new_states.find(iter_cur_symbol->second) == new_states.end()) {
+                    new_states.insert(iter_cur_symbol->second);
+                }
+                iter_cur_symbol++;
             }
         }
-        cur_states = EpsExpend(new_states, machine.epselent_graph);
+        EpsExpend(new_states, machine.epselent_graph);
+        cur_states = new_states;
     }
     for( size_t state : cur_states) {
         if (machine.allowing.find(state) != machine.allowing.end()) {
