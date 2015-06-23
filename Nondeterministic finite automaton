@@ -24,7 +24,6 @@ void RecurDFS(size_t cur_state, vector< vector<size_t> > & epselent_graph, vecto
     }
 }
 
-
 void EpsExpend(unordered_set<size_t>& all_cur_states, vector< vector<size_t> > & epselent_graph) {
     vector<bool> is_reached(epselent_graph.size(), 0);
     for (size_t state : all_cur_states) {
