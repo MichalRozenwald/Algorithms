@@ -62,8 +62,7 @@ bool IsAcceptedStr(Machine& machine, string& str) {
     return false;
 }
 
-
-int main() {
+Machine Input() {
     int num_of_states;
     cin >> num_of_states;
     Machine machine;
@@ -89,10 +88,14 @@ int main() {
             machine.states[state].insert({symbol, to});
         }
     }
+    return machine;
+}
 
+
+int main() {
+    Machine machine = Input();
     string empty_s = "";
     cout << IsAcceptedStr(machine, empty_s) << endl;
-
     int num_of_strings;
     cin >> num_of_strings;
     for (int str = 0; str < num_of_strings; ++str) {
@@ -100,6 +103,5 @@ int main() {
         cin >> cur_string;
         cout << IsAcceptedStr(machine, cur_string) << endl;
     }
-
     return 0;
 }
