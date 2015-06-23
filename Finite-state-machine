@@ -1,44 +1,47 @@
 #include <iostream>
 #include <vector>
 #include <utility>
-#include <set>
 #include <map>
-#include <string>
 
 using namespace std;
 
 class Machine {
 public:
+    struct State {
+        bool allowed;
+    };
     vector< map<char, size_t> > states;
-    set<size_t> allowing;
+    vector<State> accepted;
+
+    bool IsAcceptedStr(string str) {
+        size_t cur_state = 0;
+        for(char symbol : str) {
+            auto iter_cur_symbol = this->states[cur_state].find(symbol);
+            if(iter_cur_symbol != this->states[cur_state].end()) {
+                cur_state = iter_cur_symbol->second;
+            } else {
+                return 0;
+            }
+        }
+        return this->accepted[cur_state ].allowed;
+    }
+
 };
 
-bool IsAcceptedStr(Machine& machine, string str) {
-    size_t cur_state = 0;
-    for(char symbol : str) {
-        auto iter_cur_symbol = machine.states[cur_state].find(symbol);
-        if(iter_cur_symbol != machine.states[cur_state].end()) {
-            cur_state = iter_cur_symbol->second;
-        } else {
-            return 0;
-        }
-    }
-    if(machine.allowing.find(cur_state) != machine.allowing.end()){
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-int main() {
+Machine InputMachine() {
     int num_of_states;
     cin >> num_of_states;
     Machine machine;
     machine.states.resize(num_of_states);
+    machine.accepted.resize(num_of_states);
     for(size_t state = 0; state < num_of_states; state++) {
         int allowed;
         cin >> allowed;
-        if(allowed) machine.allowing.insert(state);
+        if(allowed) {
+            machine.accepted[state].allowed = true;
+        } else {
+            machine.accepted[state].allowed = false;
+        }
         int num_connected;
         cin >> num_connected;
         for(size_t co_state = 0; co_state < num_connected; co_state++) {
@@ -48,17 +51,19 @@ int main() {
             machine.states[state].insert({symbol, to});
         }
     }
+    return machine;
+}
 
+int main() {
+    Machine machine = InputMachine();
     string empty_s = "";
-    cout << IsAcceptedStr(machine, empty_s) << endl;
-
+    cout << machine.IsAcceptedStr(empty_s) << endl;
     int num_of_strings;
     cin >> num_of_strings;
     for(int str = 0; str < num_of_strings; ++str) {
         std::string cur_string;
         cin >> cur_string;
-        cout << IsAcceptedStr(machine, cur_string) << endl;
+        cout << machine.IsAcceptedStr(cur_string) << endl;
     }
-
     return 0;
 }
