@@ -13,95 +13,94 @@ public:
     vector< multimap<char, size_t> > states;
     vector< vector<size_t> > epselent_graph;
     unordered_set<size_t> allowing;
-};
 
-void RecurDFS(size_t cur_state, vector< vector<size_t> > & epselent_graph, vector<bool>& is_reached) {
-    for (auto connected : epselent_graph[cur_state]) {
-        if (!is_reached[connected]) {
-            is_reached[connected] = 1;
-            RecurDFS(connected, epselent_graph, is_reached);
-        }
-    }
-}
-
-void EpsExpend(unordered_set<size_t>& all_cur_states, vector< vector<size_t> > & epselent_graph) {
-    vector<bool> is_reached(epselent_graph.size(), 0);
-    for (size_t state : all_cur_states) {
-        RecurDFS(state, epselent_graph, is_reached);
-    }
-    for (size_t state = 0; state < is_reached.size(); state++) {
-        if (is_reached[state]) {
-            all_cur_states.insert(state);
-        }
-    }
-}
-
-bool IsAcceptedStr(Machine& machine, string& str) {
-    unordered_set<size_t> cur_states;
-    cur_states.insert(0);
-    EpsExpend(cur_states, machine.epselent_graph);
-    for(char symbol : str) {
-        unordered_set<size_t> new_states;
-        for (size_t state : cur_states) {
-            auto iter_cur_symbol = machine.states[state].find(symbol);
-            while (iter_cur_symbol != machine.states[state].end() && iter_cur_symbol->first == symbol) {
-                if (new_states.find(iter_cur_symbol->second) == new_states.end()) {
-                    new_states.insert(iter_cur_symbol->second);
-                }
-                iter_cur_symbol++;
+    void RecurDFS(size_t cur_state, vector<bool>& is_reached) {
+        for (auto connected : this->epselent_graph[cur_state]) {
+            if (!is_reached[connected]) {
+                is_reached[connected] = 1;
+                RecurDFS(connected, is_reached);
             }
         }
-        EpsExpend(new_states, machine.epselent_graph);
-        cur_states = new_states;
     }
-    for( size_t state : cur_states) {
-        if (machine.allowing.find(state) != machine.allowing.end()) {
-            return true;
-        }
-    }
-    return false;
-}
 
-Machine Input() {
-    int num_of_states;
-    cin >> num_of_states;
-    Machine machine;
-    machine.states.resize(num_of_states);
-    machine.epselent_graph.resize(num_of_states);
-    for(size_t state = 0; state < num_of_states; state++) {
-        int allowed;
-        cin >> allowed;
-        if (allowed) machine.allowing.insert(state);
-        int num_eps;
-        cin >> num_eps;
-        for (size_t co_state = 0; co_state < num_eps; co_state++) {
-            size_t to;
-            cin >> to;
-            machine.epselent_graph[state].push_back(to);
+    void EpsExpend(unordered_set<size_t>& all_cur_states) {
+        vector<bool> is_reached(this->epselent_graph.size(), 0);
+        for (size_t state : all_cur_states) {
+            RecurDFS(state, is_reached);
         }
-        int num_connected;
-        cin >> num_connected;
-        for (size_t co_state = 0; co_state < num_connected; co_state++) {
-            char symbol;
-            size_t to;
-            cin >> symbol >> to;
-            machine.states[state].insert({symbol, to});
+        for (size_t state = 0; state < is_reached.size(); state++) {
+            if (is_reached[state]) {
+                all_cur_states.insert(state);
+            }
         }
     }
-    return machine;
-}
+
+    bool IsAcceptedStr(string& str) {
+        unordered_set<size_t> cur_states;
+        cur_states.insert(0);
+        EpsExpend(cur_states);
+        for(char symbol : str) {
+            unordered_set<size_t> new_states;
+            for (size_t state : cur_states) {
+                auto iter_cur_symbol = this->states[state].find(symbol);
+                while (iter_cur_symbol != this->states[state].end() && iter_cur_symbol->first == symbol) {
+                    if (new_states.find(iter_cur_symbol->second) == new_states.end()) {
+                        new_states.insert(iter_cur_symbol->second);
+                    }
+                    iter_cur_symbol++;
+                }
+            }
+            EpsExpend(new_states);
+            cur_states = new_states;
+        }
+        for( size_t state : cur_states) {
+            if (this->allowing.find(state) != this->allowing.end()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    void Input() {
+        int num_of_states;
+        cin >> num_of_states;
+        this->states.resize(num_of_states);
+        this->epselent_graph.resize(num_of_states);
+        for(size_t state = 0; state < num_of_states; state++) {
+            int allowed;
+            cin >> allowed;
+            if (allowed) this->allowing.insert(state);
+            int num_eps;
+            cin >> num_eps;
+            for (size_t co_state = 0; co_state < num_eps; co_state++) {
+                size_t to;
+                cin >> to;
+                this->epselent_graph[state].push_back(to);
+            }
+            int num_connected;
+            cin >> num_connected;
+            for (size_t co_state = 0; co_state < num_connected; co_state++) {
+                char symbol;
+                size_t to;
+                cin >> symbol >> to;
+                this->states[state].insert({symbol, to});
+            }
+        }
+    }
+
+};
 
 
 int main() {
-    Machine machine = Input();
+    Machine machine;
+    machine.Input();
     string empty_s = "";
-    cout << IsAcceptedStr(machine, empty_s) << endl;
+    cout << machine.IsAcceptedStr(empty_s) << endl;
     int num_of_strings;
     cin >> num_of_strings;
     for (int str = 0; str < num_of_strings; ++str) {
         std::string cur_string;
         cin >> cur_string;
-        cout << IsAcceptedStr(machine, cur_string) << endl;
+        cout << machine.IsAcceptedStr(cur_string) << endl;
     }
     return 0;
 }
